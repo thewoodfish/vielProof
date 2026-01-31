@@ -167,9 +167,7 @@ function generateProof({ proposalId, programId, voteChoice }) {
   }
 
   const bytecodePath = path.join(NOIR_TARGET_DIR, "vote_proof.json");
-  const bytecodeGzPath = `${bytecodePath}.gz`;
-  const bytecodeJson = fs.readFileSync(bytecodePath);
-  fs.writeFileSync(bytecodeGzPath, zlib.gzipSync(bytecodeJson));
+  const witnessPath = path.join(NOIR_TARGET_DIR, "witness.gz");
 
   // Generate proof with Barretenberg
   const proofOutDir = path.join(NOIR_TARGET_DIR, "proof");
@@ -180,12 +178,11 @@ function generateProof({ proposalId, programId, voteChoice }) {
     [
       "prove",
       "-b",
-      bytecodeGzPath,
+      bytecodePath,
       "-w",
-      path.join(NOIR_TARGET_DIR, "witness.gz"),
+      witnessPath,
       "-o",
       proofOutDir,
-      "--write_vk",
     ],
     {
       cwd: NOIR_DIR,
