@@ -6,7 +6,7 @@ const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
-const PORT = process.env.VERIFIER_PORT || 8787;
+const PORT = process.env.PORT || process.env.VERIFIER_PORT || 8787;
 const REPO_ROOT = path.resolve(__dirname, "..");
 const BB_BIN = process.env.BB_BIN || path.join(os.homedir(), ".bb", "bb");
 const VK_PATH = process.env.VK_PATH || path.join(REPO_ROOT, "noir", "vote_proof", "target", "proof", "vk");
@@ -220,6 +220,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Route: /health (for Railway and monitoring)
+  if (req.method === "GET" && req.url === "/health") {
+    respondJson(res, 200, {
+      status: "ok",
+      service: "veilproof-verifier",
+      timestamp: new Date().toISOString()
+    }, origin);
+    return;
+  }
+
   // Route: /generate-proof
   if (req.method === "POST" && req.url === "/generate-proof") {
     let body;
@@ -367,6 +377,6 @@ const server = http.createServer(async (req, res) => {
   respondJson(res, 404, { error: "Not Found" }, origin);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`VeilProof verifier service listening on http://127.0.0.1:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`VeilProof verifier service listening on http://0.0.0.0:${PORT}`);
 });
