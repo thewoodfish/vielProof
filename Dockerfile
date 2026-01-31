@@ -4,12 +4,15 @@
 
 FROM node:20-slim
 
-# Install system dependencies
+# Install system dependencies including C++ runtime for bb
 RUN apt-get update && apt-get install -y \
     curl \
     bash \
     ca-certificates \
     wget \
+    libc++1 \
+    libc++abi1 \
+    libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
