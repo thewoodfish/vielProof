@@ -214,6 +214,9 @@ function generateProof({ proposalId, programId, voteChoice }) {
   const vk = fs.readFileSync(path.join(proofOutDir, "vk"));
   const vkHash = sha256(vk);
 
+  // Save vk_hash for the verify endpoint
+  fs.writeFileSync(path.join(proofOutDir, "vk_hash"), vkHash);
+
   // Public inputs - extract from compiled circuit
   const bytecode = JSON.parse(fs.readFileSync(path.join(NOIR_TARGET_DIR, "vote_proof.json")));
   const publicInputs = Buffer.alloc(64); // Placeholder - will be populated from witness
