@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     bash \
     ca-certificates \
     wget \
+    jq \
     libc++1 \
     libc++abi1 \
     libstdc++6 \
