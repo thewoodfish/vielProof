@@ -9,35 +9,42 @@ RUN apt-get update && apt-get install -y \
     curl \
     bash \
     ca-certificates \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Set HOME for nargo/bb cache directories
-ENV HOME=/app/.home
-ENV PATH="${HOME}/.nargo/bin:${HOME}/.bb:${PATH}"
+# Install Nargo (Noir compiler) - download pre-built binary
+RUN NARGO_VERSION="v0.36.0" && \
+    curl -L "https://github.com/noir-lang/noir/releases/download/${NARGO_VERSION}/nargo-x86_64-unknown-linux-gnu.tar.gz" -o nargo.tar.gz && \
+    tar -xzf nargo.tar.gz && \
+    mv nargo /usr/local/bin/ && \
+    chmod +x /usr/local/bin/nargo && \
+    rm nargo.tar.gz && \
+    nargo --version
 
-# Install Nargo (Noir compiler)
-RUN curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash && \
-    bash -c "source ${HOME}/.bashrc && ${HOME}/.nargo/bin/noirup" && \
-    mkdir -p ${HOME}/.nargo/bin && \
-    chmod +x ${HOME}/.nargo/bin/nargo || true
-
-# Install Barretenberg (ZK proof system)
-RUN curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/refs/heads/next/barretenberg/bbup/install | bash && \
-    bash -c "source ${HOME}/.bashrc && ${HOME}/.bb/bbup" && \
-    mkdir -p ${HOME}/.bb && \
-    chmod +x ${HOME}/.bb/bb || true
+# Install Barretenberg (bb) - download pre-built binary
+RUN BB_VERSION="0.63.1" && \
+    curl -L "https://github.com/AztecProtocol/aztec-packages/releases/download/barretenberg-v${BB_VERSION}/bb-x86_64-linux-gnu.tar.gz" -o bb.tar.gz && \
+    tar -xzf bb.tar.gz && \
+    mv bb /usr/local/bin/ && \
+    chmod +x /usr/local/bin/bb && \
+    rm bb.tar.gz && \
+    bb --version
 
 # Copy verifier service and Noir circuit
 COPY verifier_service/ ./verifier_service/
 COPY noir/ ./noir/
 COPY package.json ./
 
+# Set environment variables for verifier service
+ENV NARGO_BIN=/usr/local/bin/nargo
+ENV BB_BIN=/usr/local/bin/bb
+ENV HOME=/app
+
 # Create necessary directories
-RUN mkdir -p ${HOME}/.home && \
-    mkdir -p noir/vote_proof/target && \
+RUN mkdir -p noir/vote_proof/target && \
     chmod -R 755 verifier_service
 
 # Expose port (Railway will override with PORT env var)
