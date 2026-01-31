@@ -33,7 +33,9 @@ RUN curl -L "https://github.com/AztecProtocol/aztec-packages/releases/download/a
     tar -xzf bb.tar.gz && \
     chmod +x bb && \
     mv bb /usr/local/bin/ && \
-    rm bb.tar.gz && \
+    if [ -d lib ]; then mv lib/* /usr/local/lib/; fi && \
+    ldconfig && \
+    rm -rf bb.tar.gz lib && \
     bb --version && \
     echo "bb installed successfully"
 
