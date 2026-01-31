@@ -142,12 +142,13 @@ export function buildVerifierInstruction(
 export async function sendAndConfirmTransaction(
   connection: Connection,
   transaction: Transaction,
-  signTransaction: (tx: Transaction) => Promise<Transaction>
+  signTransaction: (tx: Transaction) => Promise<Transaction>,
+  feePayer: PublicKey
 ): Promise<string> {
   // Get recent blockhash
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
-  transaction.feePayer = transaction.signatures[0].publicKey;
+  transaction.feePayer = feePayer;
 
   // Sign transaction
   const signed = await signTransaction(transaction);

@@ -90,7 +90,8 @@ export async function castVote(context: VoteContext): Promise<string> {
   const signature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    wallet.signTransaction
+    wallet.signTransaction,
+    wallet.publicKey
   );
 
   return signature;
@@ -229,7 +230,8 @@ export async function submitProof(
   const txSignature = await sendAndConfirmTransaction(
     connection,
     transaction,
-    wallet.signTransaction
+    wallet.signTransaction,
+    wallet.publicKey
   );
 
   return txSignature;
