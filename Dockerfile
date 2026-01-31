@@ -27,9 +27,9 @@ RUN NARGO_VERSION="v0.36.0" && \
     rm nargo.tar.gz && \
     nargo --version
 
-# Install Barretenberg (bb) - Direct download of pre-built binary
-# Using a specific known-working release
-RUN curl -L "https://github.com/AztecProtocol/aztec-packages/releases/download/aztec-packages-v0.17.0/barretenberg-x86_64-linux-gnu.tar.gz" -o bb.tar.gz && \
+# Install Barretenberg (bb) - Use version compatible with nargo v0.36.0
+# Trying v0.62.0 (from same time period as nargo v0.36.0)
+RUN curl -L "https://github.com/AztecProtocol/aztec-packages/releases/download/aztec-packages-v0.62.0/barretenberg-x86_64-linux-gnu.tar.gz" -o bb.tar.gz && \
     tar -xzf bb.tar.gz && \
     chmod +x bb && \
     mv bb /usr/local/bin/ && \
