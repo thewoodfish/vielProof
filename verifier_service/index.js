@@ -156,38 +156,67 @@ function generateProof({ proposalId, programId, voteChoice }) {
     throw new Error("Nargo compile failed");
   }
 
-  // Generate proof using nargo (modern workflow - handles witness + proving)
-  result = spawnSync(NARGO_BIN, ["prove"], {
+  // Execute witness generation
+  result = spawnSync(NARGO_BIN, ["execute", "witness"], {
     cwd: NOIR_DIR,
     env,
     stdio: "inherit",
   });
   if (result.status !== 0) {
-    throw new Error("Nargo prove failed");
+    throw new Error("Nargo execute failed");
   }
 
-  // Read proof artifacts from nargo's output
-  const proofOutDir = path.join(NOIR_TARGET_DIR, "proofs");
-  const proofFiles = fs.readdirSync(proofOutDir);
-  const proofFile = proofFiles.find(f => f.endsWith('.proof'));
+  // Generate proof with Barretenberg using write_vk command
+  const proofOutDir = path.join(NOIR_TARGET_DIR, "proof");
+  fs.mkdirSync(proofOutDir, { recursive: true });
 
-  if (!proofFile) {
-    throw new Error("Proof file not found");
+  // First, generate the verification key
+  result = spawnSync(
+    BB_BIN,
+    [
+      "write_vk",
+      "-b",
+      path.join(NOIR_TARGET_DIR, "vote_proof.json"),
+      "-o",
+      path.join(proofOutDir, "vk"),
+    ],
+    {
+      cwd: NOIR_DIR,
+      env,
+      stdio: "inherit",
+    }
+  );
+
+  // Generate the proof
+  result = spawnSync(
+    BB_BIN,
+    [
+      "prove",
+      "-b",
+      path.join(NOIR_TARGET_DIR, "vote_proof.json"),
+      "-w",
+      path.join(NOIR_TARGET_DIR, "witness.gz"),
+      "-o",
+      path.join(proofOutDir, "proof"),
+    ],
+    {
+      cwd: NOIR_DIR,
+      env,
+      stdio: "inherit",
+    }
+  );
+  if (result.status !== 0) {
+    throw new Error("Barretenberg prove failed");
   }
 
-  const proofBytes = fs.readFileSync(path.join(proofOutDir, proofFile));
+  // Read proof artifacts
+  const proofBytes = fs.readFileSync(path.join(proofOutDir, "proof"));
+  const vk = fs.readFileSync(path.join(proofOutDir, "vk"));
+  const vkHash = sha256(vk);
 
-  // For vk_hash, we'll generate it from the verification key
-  const vkPath = path.join(NOIR_TARGET_DIR, "vk");
-  const vkHash = fs.existsSync(vkPath)
-    ? sha256(fs.readFileSync(vkPath))
-    : Buffer.alloc(32); // Fallback if vk doesn't exist
-
-  // Extract public inputs from the proof metadata
-  const publicInputsPath = path.join(proofOutDir, proofFile.replace('.proof', '.pub'));
-  const publicInputs = fs.existsSync(publicInputsPath)
-    ? fs.readFileSync(publicInputsPath)
-    : Buffer.alloc(64); // Default public inputs
+  // Public inputs - extract from compiled circuit
+  const bytecode = JSON.parse(fs.readFileSync(path.join(NOIR_TARGET_DIR, "vote_proof.json")));
+  const publicInputs = Buffer.alloc(64); // Placeholder - will be populated from witness
 
   return {
     publicInputs: {
