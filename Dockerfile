@@ -24,13 +24,15 @@ RUN NARGO_VERSION="v0.36.0" && \
     rm nargo.tar.gz && \
     nargo --version
 
-# Install Barretenberg (bb) using official installer
-RUN mkdir -p /root/.bb && \
-    curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/master/barretenberg/cpp/installation/install | bash && \
-    bash -c 'source /root/.bashrc && bbup' && \
-    cp /root/.bb/bb /usr/local/bin/bb && \
-    chmod +x /usr/local/bin/bb && \
-    bb --version || echo "bb installed successfully"
+# Install Barretenberg (bb) - Direct download of pre-built binary
+# Using a specific known-working release
+RUN curl -L "https://github.com/AztecProtocol/aztec-packages/releases/download/aztec-packages-v0.17.0/barretenberg-x86_64-linux-gnu.tar.gz" -o bb.tar.gz && \
+    tar -xzf bb.tar.gz && \
+    chmod +x bb && \
+    mv bb /usr/local/bin/ && \
+    rm bb.tar.gz && \
+    bb --version && \
+    echo "bb installed successfully"
 
 # Copy verifier service and Noir circuit
 COPY verifier_service/ ./verifier_service/
