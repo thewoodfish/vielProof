@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const zlib = require("zlib");
 const { spawnSync } = require("child_process");
 
 const PORT = process.env.PORT || process.env.VERIFIER_PORT || 8787;
@@ -165,6 +166,11 @@ function generateProof({ proposalId, programId, voteChoice }) {
     throw new Error("Nargo execute failed");
   }
 
+  const bytecodePath = path.join(NOIR_TARGET_DIR, "vote_proof.json");
+  const bytecodeGzPath = `${bytecodePath}.gz`;
+  const bytecodeJson = fs.readFileSync(bytecodePath);
+  fs.writeFileSync(bytecodeGzPath, zlib.gzipSync(bytecodeJson));
+
   // Generate proof with Barretenberg
   const proofOutDir = path.join(NOIR_TARGET_DIR, "proof");
   fs.mkdirSync(proofOutDir, { recursive: true });
@@ -174,7 +180,7 @@ function generateProof({ proposalId, programId, voteChoice }) {
     [
       "prove",
       "-b",
-      path.join(NOIR_TARGET_DIR, "vote_proof.json"),
+      bytecodeGzPath,
       "-w",
       path.join(NOIR_TARGET_DIR, "witness.gz"),
       "-o",

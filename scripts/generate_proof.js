@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const zlib = require("zlib");
 const { spawnSync } = require("child_process");
 
 function getArg(name, fallback) {
@@ -71,6 +72,11 @@ fs.writeFileSync(
 run(nargoPath, ["compile"], noirDir, env);
 run(nargoPath, ["execute", "witness"], noirDir, env);
 
+const bytecodePath = path.join(noirTargetDir, "vote_proof.json");
+const bytecodeGzPath = `${bytecodePath}.gz`;
+const bytecodeJson = fs.readFileSync(bytecodePath);
+fs.writeFileSync(bytecodeGzPath, zlib.gzipSync(bytecodeJson));
+
 const proofOutDir = path.join(noirTargetDir, "proof");
 fs.mkdirSync(proofOutDir, { recursive: true });
 
@@ -79,7 +85,7 @@ run(
   [
     "prove",
     "-b",
-    path.join(noirTargetDir, "vote_proof.json"),
+    bytecodeGzPath,
     "-w",
     path.join(noirTargetDir, "witness.gz"),
     "-o",
