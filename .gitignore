@@ -107,6 +107,14 @@ dist
 # Docusaurus cache and generated files
 .docusaurus
 
+# VeilProof generated artifacts
+noir/vote_proof/target
+noir/vote_proof/Prover.toml
+scripts/out
+.home
+.nargo_cache
+.nargo_home
+
 # Serverless directories
 .serverless/
 
