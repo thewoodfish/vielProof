@@ -224,6 +224,104 @@ This writes `scripts/out/proof.json`, which the demo uses to create the verifier
 
 If the output makes it obvious that the verifier **only knows a YES vote was proven**, then VeilProof succeeds.
 
+## Railway Deployment
+
+Deploy the verifier service to Railway for public access.
+
+### Prerequisites
+- Railway account (https://railway.app)
+- GitHub repository connected to Railway
+- Docker installed locally (for testing)
+
+### Quick Start
+
+1. **Test Dockerfile locally**:
+   ```bash
+   docker build -t veilproof-verifier .
+   docker run -p 8787:8787 veilproof-verifier
+   curl http://localhost:8787/health
+   ```
+
+2. **Deploy to Railway**:
+   - Go to Railway dashboard
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your VeilProof repository
+   - Railway will auto-detect the Dockerfile
+   - Wait for build (~5-10 minutes)
+
+3. **Configure environment variables** in Railway dashboard:
+   - `PORT` (auto-injected by Railway)
+   - `SOLANA_RPC_URL` (optional, defaults to https://api.devnet.solana.com)
+   - `ALLOWED_ORIGINS` (optional, set to your frontend domain or "*" for testing)
+
+4. **Verify deployment**:
+   ```bash
+   curl https://your-railway-url.railway.app/health
+   ```
+
+### Testing the deployed service
+
+Generate a proof:
+```bash
+curl -X POST https://your-railway-url.railway.app/generate-proof \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proposal_id": "42",
+    "program_id": "7",
+    "vote_choice": 1
+  }'
+```
+
+Verify a proof:
+```bash
+curl -X POST https://your-railway-url.railway.app/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proof_bytes_base64": "<proof_from_generate>",
+    "public_inputs_json": {"expected_program_id":"7","expected_proposal_id":"42","raw":"..."},
+    "vk_hash_hex": "<vk_hash_from_generate>",
+    "expected_program_id": "7",
+    "expected_proposal_id": "42"
+  }'
+```
+
+### Update frontend to use Railway service
+
+After deploying, update your frontend environment:
+```bash
+# In ui/web/.env.development or .env.production
+VITE_VERIFIER_SERVICE_URL=https://your-railway-url.railway.app
+```
+
+### Build times and performance
+
+- **First build**: ~5-10 minutes (downloads nargo, barretenberg)
+- **Subsequent builds**: ~2-3 minutes (cached layers)
+- **Cold start**: ~2-3 seconds
+- **Proof generation**: ~2-5 seconds (first request), ~1-3 seconds (cached)
+- **Proof verification**: ~100-500ms
+
+### Troubleshooting
+
+**Build timeout**: If Railway times out during build, the nargo/bb installation might be taking too long. Check Railway logs and consider upgrading to a larger instance.
+
+**Out of memory**: Proof generation requires at least 512MB RAM. Upgrade to Railway's Pro plan if you see OOM errors.
+
+**CORS errors**: Set `ALLOWED_ORIGINS` environment variable to include your frontend domain:
+```
+ALLOWED_ORIGINS=https://your-frontend.vercel.app,http://localhost:5173
+```
+
+### Monitoring
+
+Railway provides automatic:
+- Health checks (via `/health` endpoint)
+- Logs (view in Railway dashboard)
+- Metrics (CPU, memory, network)
+- Alerts (configure in settings)
+
+---
+
 ## UI Demo (1900s retro)
 Run the frontend:
 ```

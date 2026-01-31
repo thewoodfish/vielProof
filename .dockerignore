@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+ui/web/node_modules/
+
+# Build artifacts
+target/
+noir/vote_proof/target/
+*.o
+*.so
+*.dylib
+
+# Frontend (not needed for verifier service)
+ui/
+
+# Development files
+.git/
+.gitignore
+.env
+.env.*
+*.log
+
+# Documentation and media
+*.md
+!README.md
+video_production/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Deployment scripts (not needed in container)
+scripts/deploy.sh
+scripts/demo.js
+scripts/generate_proof.js
+
+# Solana programs (not needed for verifier)
+programs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
