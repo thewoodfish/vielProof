@@ -212,13 +212,14 @@ export async function submitProof(
   const ed25519Ix = buildEd25519Instruction(signerPubkey, signature, messageHash);
 
   // Step 3: Build verifier program instruction
+  // Note: We only send attestation data, not the full proof (too large for Solana tx)
   const verifierIx = buildVerifierInstruction(
     proposalId,
     proof.publicInputs.expected_program_id,
     attestation.attestation.vk_hash_hex,
     attestation.attestation.public_inputs_hash_hex,
     attestation.signature_base64,
-    proof.proof,
+    "", // Empty proof - not needed on-chain, verified off-chain
     wallet.publicKey
   );
 
