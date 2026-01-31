@@ -2,6 +2,12 @@
 
 VeilProof is a hackathon-grade end-to-end prototype that demonstrates **Private Proof-of-Action on Solana** using a Noir circuit. A user can prove they voted **YES** on a proposal without revealing their wallet, transaction signature, vote amount, or any other metadata.
 
+## Live Demo
+
+**Try it now:** https://viel-proof.vercel.app/
+
+Experience the full zero-knowledge proof flow in your browser with demo mode (no wallet required) or connect your Solana wallet for real on-chain transactions on devnet.
+
 ## What this demo shows
 - A minimal Solana **vote program** accepts a vote instruction.
 - A **Noir circuit** proves (in zero-knowledge) that:
